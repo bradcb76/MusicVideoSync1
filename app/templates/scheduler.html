@@ -1,0 +1,5 @@
+{% extends "base.html" %}{% block content %}
+<section class="hero"><div><p class="eyebrow">Persistent queue control</p><h2>Australia/Sydney scheduler</h2><p class="muted">The saved limit is checked before every item.</p></div><div class="actions">
+<button class="button primary" data-action="scheduler-start">Start dry-run</button><button class="button ghost" data-action="scheduler-pause">Pause</button><button class="button ghost" data-action="scheduler-resume">Resume</button><button class="button danger" data-action="scheduler-stop">Stop after current</button></div></section>
+<section class="metric-grid compact"><article class="metric"><span>State</span><strong id="scheduler-state">—</strong></article><article class="metric"><span>Today</span><strong id="scheduler-today">—</strong></article><article class="metric"><span>Instance lock</span><strong id="scheduler-lock">—</strong></article></section>
+<section class="panel"><div class="panel-head"><h2>Artist progress</h2><button class="button ghost" data-action="retry-failed">Retry failed</button></div><div id="artist-progress" class="empty">No queued artists.</div></section>{% endblock %}

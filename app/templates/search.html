@@ -1,0 +1,5 @@
+{% extends "base.html" %}{% block content %}
+<section class="panel"><p class="eyebrow">Discovery</p><h2>Find an official music video</h2>
+<form id="search-form" class="form-grid"><label>Artist<input name="artist" required maxlength="200"></label><label>Song title<input name="title" required maxlength="200"></label><button class="button primary" type="submit">Search YouTube</button></form></section>
+<section id="search-results" class="card-grid"><div class="empty">Enter an artist and song title to begin.</div></section>
+{% endblock %}

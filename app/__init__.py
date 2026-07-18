@@ -1,0 +1,1 @@
+"""MusicVideoSync application package."""

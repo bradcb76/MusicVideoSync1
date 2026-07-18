@@ -1,0 +1,4 @@
+{% extends "base.html" %}{% block content %}
+<section class="panel"><div class="panel-head"><div><p class="eyebrow">Pipeline</p><h2>All jobs</h2></div><span class="mode {{ 'dry' if dry_run else 'live' }}">{{ 'Dry-run protected' if dry_run else 'Live writes enabled' }}</span></div>
+<div class="filter-row"><button class="chip active" data-job-state="">All</button>{% for state in ['queued','searching','downloading','processing','completed','skipped','failed'] %}<button class="chip" data-job-state="{{ state }}">{{ state|title }}</button>{% endfor %}</div>
+<div id="job-list" class="job-list"><div class="empty">Loading jobs…</div></div></section>{% endblock %}

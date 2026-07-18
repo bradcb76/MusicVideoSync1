@@ -1,0 +1,4 @@
+{% extends "base.html" %}{% block content %}<section class="panel narrow"><p class="eyebrow">Persistent configuration</p><h2>Scheduler settings</h2>
+<form id="settings-form" class="stack"><label>Daily download limit <span class="hint">Australia/Sydney calendar day</span><input name="daily_limit" type="number" min="1" max="5000" value="250" required></label>
+<label>Retry delay in seconds<input name="retry_delay_seconds" type="number" min="0" max="3600" value="5" required></label><button class="button primary" type="submit">Save settings</button></form></section>
+<section class="notice">Integration secrets are environment-only. This prevents tokens from being exposed through browser forms or the settings API.</section>{% endblock %}

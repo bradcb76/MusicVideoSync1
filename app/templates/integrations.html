@@ -1,0 +1,6 @@
+{% extends "base.html" %}{% block content %}
+<section class="integration-grid">
+{% for provider in ['plex','emby'] %}<article class="panel integration-card" data-provider="{{ provider }}"><div class="panel-head"><div><p class="eyebrow">Media server</p><h2>{{ provider|title }}</h2></div><span class="status-pill">Checking</span></div>
+<dl><div><dt>Server</dt><dd data-field="server_name">—</dd></div><div><dt>Version</dt><dd data-field="server_version">—</dd></div><div><dt>Last refresh</dt><dd data-field="last_refresh_at">Never</dd></div></dl>
+<p class="integration-result muted" data-field="last_result">Connection has not been tested.</p><div class="actions"><button class="button ghost" data-integration-test="{{ provider }}">Test connection</button><button class="button primary" data-integration-refresh="{{ provider }}">Refresh {{ provider|title }}</button></div></article>{% endfor %}
+</section><section class="notice"><strong>Credentials stay private.</strong> Tokens and API keys come from environment variables and are never returned by these screens.</section>{% endblock %}

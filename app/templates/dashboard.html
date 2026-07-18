@@ -1,0 +1,11 @@
+{% extends "base.html" %}{% block content %}
+<section class="hero"><div><p class="eyebrow">At a glance</p><h2>Your music-video pipeline</h2><p class="muted">Scan safely, review candidates, and control production from one place.</p></div>
+<div class="actions"><button class="button ghost" data-action="scan">Scan library</button><button class="button primary" data-action="scheduler-start">Start dry-run scheduler</button></div></section>
+<section class="metric-grid" id="metrics" aria-busy="true">
+  {% for key,label in [('tracks','Music tracks'),('identified','Identified'),('artists','Artists'),('completed','Completed videos'),('pending','Pending jobs'),('failed','Failed jobs')] %}
+  <article class="metric skeleton"><span>{{ label }}</span><strong data-metric="{{ key }}">—</strong></article>{% endfor %}
+</section>
+<section class="split"><article class="panel"><div class="panel-head"><div><p class="eyebrow">Daily allowance</p><h2>Sydney downloads</h2></div><span class="mode dry">DRY RUN</span></div><div class="progress"><span id="daily-progress"></span></div><p id="daily-copy" class="muted">Loading…</p></article>
+<article class="panel"><p class="eyebrow">Storage</p><h2>Video destination</h2><strong class="display" id="disk-free">—</strong><p class="muted">Free space available</p></article></section>
+<section class="panel"><div class="panel-head"><div><p class="eyebrow">Operations</p><h2>Recent activity</h2></div><a href="/logs">View logs</a></div><div id="activity" class="empty">No recent activity yet.</div></section>
+{% endblock %}

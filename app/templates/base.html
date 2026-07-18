@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="csrf-token" content="{{ csrf }}">
+  <title>{{ page_title }} · MusicVideoSync</title>
+  <link rel="stylesheet" href="{{ url_for('static', path='app.css') }}">
+</head>
+<body data-page="{{ active }}" data-dry-run="{{ 'true' if dry_run else 'false' }}">
+  <a class="skip-link" href="#content">Skip to content</a>
+  <aside class="sidebar">
+    <a class="brand" href="/"><span class="brand-mark">M</span><span>MusicVideoSync</span></a>
+    <nav aria-label="Primary">
+      {% set links = [
+        ('dashboard','/','Dashboard','grid'),
+        ('library','/library','Music Library','music'),
+        ('search','/search','Search','search'),
+        ('queue','/queue','Video Queue','queue'),
+        ('scheduler','/scheduler','Scheduler','clock'),
+        ('completed','/completed','Completed Videos','check'),
+        ('failed','/failed','Failed Items','alert'),
+        ('integrations','/integrations','Plex & Emby','link'),
+        ('settings','/settings','Settings','settings'),
+        ('system','/system','System Health','pulse'),
+        ('logs','/logs','Logs','list')
+      ] %}
+      {% for key, href, label, icon in links %}
+      <a href="{{ href }}" class="{{ 'active' if active == key else '' }}"><span aria-hidden="true" class="nav-icon">{{ icon[0]|upper }}</span>{{ label }}</a>
+      {% endfor %}
+    </nav>
+    <div class="sidebar-foot">
+      <span class="mode {{ 'dry' if dry_run else 'live' }}">{{ 'DRY RUN' if dry_run else 'LIVE MODE' }}</span>
+      <button class="button ghost small" data-action="logout">Sign out</button>
+    </div>
+  </aside>
+  <main id="content">
+    <header class="topbar">
+      <button class="menu" aria-label="Toggle navigation">☰</button>
+      <div><p class="eyebrow">MusicVideoSync</p><h1>{{ page_title }}</h1></div>
+      <div id="connection" class="connection"><span></span> Connected</div>
+    </header>
+    {% block content %}{% endblock %}
+  </main>
+  <div id="toast-region" role="status" aria-live="polite"></div>
+  <dialog id="confirm-dialog">
+    <form method="dialog"><h2>Confirm action</h2><p id="confirm-message"></p>
+      <div class="dialog-actions"><button value="cancel" class="button ghost">Cancel</button><button value="confirm" class="button primary">Confirm</button></div>
+    </form>
+  </dialog>
+  <script src="{{ url_for('static', path='app.js') }}" defer></script>
+</body>
+</html>
