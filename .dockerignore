@@ -1,0 +1,16 @@
+.git
+.env*
+!.env.example
+data
+downloads
+staging
+processing
+logs
+cache
+*.db
+*.sqlite*
+*.log
+__pycache__
+*.pyc
+*.backup.py
+tests
