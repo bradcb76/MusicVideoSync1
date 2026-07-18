@@ -1,0 +1,18 @@
+﻿services:
+  music-video-sync:
+    build: .
+    container_name: music-video-sync
+    ports:
+      - "8787:8787"
+    environment:
+      MUSIC_LIBRARY: /music
+      MUSIC_VIDEO_LIBRARY: /music-videos
+      DATABASE_PATH: /data/music-video-sync.db
+      VIDEO_QUALITY: "720"
+      SCAN_ONLY: "true"
+      ALLOW_STAGING_DOWNLOADS: "true"
+    volumes:
+      - "D:/Music:/music:ro"
+      - "D:/Music Videos:/music-videos"
+      - "./data:/data"
+    restart: unless-stopped
