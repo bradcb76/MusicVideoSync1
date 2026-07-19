@@ -1,18 +1,44 @@
-﻿services:
+services:
   music-video-sync:
     build: .
     container_name: music-video-sync
-    ports:
-      - "8787:8787"
+    ports: ["127.0.0.1:8787:8787"]
+    env_file:
+      - path: .env
+        required: false
     environment:
       MUSIC_LIBRARY: /music
       MUSIC_VIDEO_LIBRARY: /music-videos
       DATABASE_PATH: /data/music-video-sync.db
-      VIDEO_QUALITY: "720"
-      SCAN_ONLY: "true"
-      ALLOW_STAGING_DOWNLOADS: "true"
+      STAGING_PATH: /staging
+      PROCESSING_PATH: /processing
+      APP_TIMEZONE: Australia/Sydney
+      DAILY_DOWNLOAD_LIMIT: "250"
+      DRY_RUN: "true"
+      ALLOW_DOWNLOADS: "false"
+      DOCS_ENABLED: "false"
     volumes:
       - "D:/Music:/music:ro"
       - "D:/Music Videos:/music-videos"
       - "./data:/data"
+      - "./data/staging:/staging"
+      - "./data/processing:/processing"
+    read_only: true
+    tmpfs: ["/tmp:size=512m,noexec,nosuid"]
+    init: true
+    user: "10001:10001"
+    security_opt: [no-new-privileges:true]
+    cap_drop: ["ALL"]
     restart: unless-stopped
+    stop_grace_period: 30s
+    mem_limit: 1g
+    cpus: 2
+    logging:
+      driver: json-file
+      options: {max-size: "10m", max-file: "3"}
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8787/ready', timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
