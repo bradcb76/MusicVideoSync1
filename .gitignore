@@ -1,26 +1,49 @@
+﻿# Secrets
 .env
 .env.*
 !.env.example
+*.key
+*.pem
 
+# Runtime data
 data/
 downloads/
 staging/
 processing/
-logs/
-cache/
-__pycache__/
-*.pyc
-*.pyo
+backups/
 *.db
+*.db-*
+*.db.*
 *.sqlite
 *.sqlite3
-*.log
 
+# Temporary source backups
+*.before-windows-fix
+*.readonly-original
+*.permission-fix
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
 .venv/
 venv/
-.idea/
+
+# Editors and operating systems
 .vscode/
+.idea/
 .DS_Store
 Thumbs.db
 
+# Logs
+*.log
+logs/
+
+# Accidental and backup files
+-c
+*.backup.py
+
+# Accidental and backup files
+-c
 *.backup.py
