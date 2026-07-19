@@ -398,9 +398,24 @@ def create_app(config: Settings = settings) -> FastAPI:
         scheduler_started = False
         try:
             scheduler = application_state.scheduler
-            remaining = max(0, scheduler.daily_limit() - scheduler.downloads_today())
+            with application_state.database.connect() as db:
+                already_queued = db.execute(
+                    "SELECT COUNT(*) FROM jobs WHERE state='queued'"
+                ).fetchone()[0]
+            if already_queued:
+                if not scheduler.start(dry_run=not live):
+                    scheduler.resume()
+                scheduler_started = True
+                state["message"] = f"Started {already_queued} queued video(s)"
+            remaining = max(
+                0,
+                scheduler.daily_limit()
+                - scheduler.downloads_today()
+                - already_queued,
+            )
             if not remaining:
-                state["message"] = "Daily download limit reached"
+                if not already_queued:
+                    state["message"] = "Daily download limit reached"
                 return
             with application_state.database.connect() as db:
                 tracks = db.execute(
