@@ -1,6 +1,26 @@
 {% extends "base.html" %}{% block content %}
+<section class="hero"><div><p class="eyebrow">Media-server setup</p><h2>Connect Plex and Emby</h2><p class="muted">Settings are stored in the protected application database. Credentials are never returned to the browser after saving.</p></div></section>
 <section class="integration-grid">
-{% for provider in ['plex','emby'] %}<article class="panel integration-card" data-provider="{{ provider }}"><div class="panel-head"><div><p class="eyebrow">Media server</p><h2>{{ provider|title }}</h2></div><span class="status-pill">Checking</span></div>
-<dl><div><dt>Server</dt><dd data-field="server_name">—</dd></div><div><dt>Version</dt><dd data-field="server_version">—</dd></div><div><dt>Last refresh</dt><dd data-field="last_refresh_at">Never</dd></div></dl>
-<p class="integration-result muted" data-field="last_result">Connection has not been tested.</p><div class="actions"><button class="button ghost" data-integration-test="{{ provider }}">Test connection</button><button class="button primary" data-integration-refresh="{{ provider }}">Refresh {{ provider|title }}</button></div></article>{% endfor %}
-</section><section class="notice"><strong>Credentials stay private.</strong> Tokens and API keys come from environment variables and are never returned by these screens.</section>{% endblock %}
+{% for provider in ['plex','emby'] %}
+<article class="panel integration-card" data-provider="{{ provider }}">
+  <div class="panel-head"><div><p class="eyebrow">Media server</p><h2>{{ provider|title }}</h2></div><span class="status-pill neutral">Checking</span></div>
+  <form class="stack integration-form" data-integration-form="{{ provider }}">
+    <label class="toggle-row"><span>Enable {{ provider|title }}</span><input name="enabled" type="checkbox"></label>
+    <label>Server address<input name="url" type="url" placeholder="{{ 'http://host.docker.internal:32400' if provider == 'plex' else 'http://host.docker.internal:8096' }}" required></label>
+    <label>{{ 'Plex token' if provider == 'plex' else 'Emby API key' }} <span class="hint" data-credential-hint>Not configured</span><input name="credential" type="password" autocomplete="new-password" placeholder="Leave blank to keep the saved credential"></label>
+    <label>Library ID<input name="library_id" placeholder="{{ 'Example: 7' if provider == 'plex' else 'Emby library item ID' }}"></label>
+    <label>Server path prefix <span class="hint">Optional path seen by the media server</span><input name="path_prefix" placeholder="/media/music-videos"></label>
+    <div class="checkbox-grid">
+      <label><input name="verify_ssl" type="checkbox"> Verify SSL certificate</label>
+      <label><input name="auto_refresh" type="checkbox"> Refresh after downloads</label>
+    </div>
+    <button class="button primary" type="submit">Save {{ provider|title }} settings</button>
+  </form>
+  <dl><div><dt>Server</dt><dd data-field="server_name">—</dd></div><div><dt>Version</dt><dd data-field="server_version">—</dd></div><div><dt>Last refresh</dt><dd data-field="last_refresh_at">Never</dd></div></dl>
+  <p class="integration-result muted" data-field="last_result">Connection has not been tested.</p>
+  <div class="actions"><button class="button ghost" data-integration-test="{{ provider }}">Test connection</button><button class="button secondary" data-integration-refresh="{{ provider }}">Refresh library</button></div>
+</article>
+{% endfor %}
+</section>
+<section class="notice"><strong>Docker connection tip:</strong> when Plex or Emby runs on this Windows computer, use <code>host.docker.internal</code> instead of <code>localhost</code>.</section>
+{% endblock %}

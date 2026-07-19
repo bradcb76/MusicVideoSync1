@@ -240,6 +240,17 @@ async function loadIntegrations() {
       $('[data-field="last_result"]', card).textContent = item.last_result || 'Connection has not been tested.';
       setStatus($('.status-pill', card), item.enabled ? titleCase(item.status || 'Configured') : 'Disabled',
         !item.enabled ? 'neutral' : item.status === 'error' ? 'bad' : 'good');
+      const form = $('.integration-form', card);
+      if (form) {
+        form.elements.enabled.checked = Boolean(item.enabled);
+        form.elements.url.value = item.url || '';
+        form.elements.library_id.value = item.library_id || '';
+        form.elements.path_prefix.value = item.path_prefix || '';
+        form.elements.verify_ssl.checked = Boolean(item.verify_ssl);
+        form.elements.auto_refresh.checked = Boolean(item.auto_refresh);
+        $('[data-credential-hint]', form).textContent =
+          item.credential_configured ? 'Saved' : 'Not configured';
+      }
     });
   } catch (error) { toast(error.message, true); }
 }
@@ -314,6 +325,14 @@ document.addEventListener('click', async event => {
     'retry-failed': ['Failed jobs returned to queue', '/api/scheduler/retry-failed']
   };
   if (actions[actionName]) await runAction(...actions[actionName]);
+  if (actionName === 'auto-download') {
+    const live = document.body.dataset.dryRun !== 'true';
+    await runAction(
+      live ? 'Automatic downloading started' : 'Automatic dry-run preview started',
+      '/api/auto-download',
+      {live}
+    );
+  }
 
   const test = event.target.closest('[data-integration-test]')?.dataset.integrationTest;
   if (test) await runAction(`${titleCase(test)} connection tested`, `/api/integrations/${test}/test`);
@@ -380,6 +399,29 @@ $('#settings-form')?.addEventListener('submit', async event => {
     toast('Settings saved');
   } catch (error) { toast(error.message, true); }
 });
+
+$$('.integration-form').forEach(form => form.addEventListener('submit', async event => {
+  event.preventDefault();
+  const provider = form.dataset.integrationForm;
+  const values = Object.fromEntries(new FormData(form));
+  try {
+    await api(`/api/integrations/${provider}/settings`, {
+      method: 'POST',
+      body: {
+        enabled: form.elements.enabled.checked,
+        url: values.url,
+        credential: values.credential || '',
+        library_id: values.library_id || '',
+        path_prefix: values.path_prefix || '',
+        verify_ssl: form.elements.verify_ssl.checked,
+        auto_refresh: form.elements.auto_refresh.checked
+      }
+    });
+    form.elements.credential.value = '';
+    toast(`${titleCase(provider)} settings saved`);
+    await loadIntegrations();
+  } catch (error) { toast(error.message, true); }
+}));
 
 refresh();
 if (['dashboard', 'scheduler', 'queue'].includes(page)) setInterval(refresh, 5000);

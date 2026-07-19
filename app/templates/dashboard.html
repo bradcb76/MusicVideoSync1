@@ -1,7 +1,7 @@
 {% extends "base.html" %}{% block content %}
 <section class="hero control-hero">
   <div><span class="kicker"><i></i> All systems in one place</span><h2>Music video control centre</h2><p class="muted">Scan your collection, monitor automation, and refresh Plex or Emby without jumping between screens.</p></div>
-  <div class="actions"><button class="button secondary" data-action="scan"><span>↻</span> Scan library</button><button class="button primary" data-action="scheduler-start"><span>▶</span> Start scheduler</button></div>
+  <div class="actions"><button class="button secondary" data-action="scan"><span>↻</span> Scan library</button><button class="button primary" data-action="auto-download"><span>⇩</span> {{ 'Auto preview' if dry_run else 'Auto download' }}</button></div>
 </section>
 
 <section class="metric-grid" id="metrics" aria-busy="true">
@@ -32,7 +32,7 @@
   <article class="panel quick-panel">
     <div class="panel-head"><div><p class="eyebrow">Quick actions</p><h2>Run the essentials</h2></div></div>
     <div class="quick-actions">
-      <button data-action="scan"><span class="quick-icon purple">↻</span><b>Scan library</b><small>Find new and changed music</small><i>→</i></button>
+      <button data-action="auto-download"><span class="quick-icon purple">⇩</span><b>{{ 'Auto preview' if dry_run else 'Auto download' }}</b><small>Find and queue missing videos</small><i>→</i></button>
       <a href="/search"><span class="quick-icon blue">⌕</span><b>Search video</b><small>Find an official match</small><i>→</i></a>
       <a href="/queue"><span class="quick-icon amber">≡</span><b>Review queue</b><small>Inspect pending work</small><i>→</i></a>
       <button data-action="retry-failed"><span class="quick-icon red">↻</span><b>Retry failures</b><small>Return failed jobs to queue</small><i>→</i></button>

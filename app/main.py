@@ -18,7 +18,14 @@ from app.database import Database
 from app.integrations.coordinator import IntegrationCoordinator
 from app.logging_config import configure_logging
 from app.scheduler.engine import Scheduler
-from app.schemas import LoginRequest, QueueRequest, SchedulerStartRequest, SettingsRequest
+from app.schemas import (
+    AutoDownloadRequest,
+    IntegrationSettingsRequest,
+    LoginRequest,
+    QueueRequest,
+    SchedulerStartRequest,
+    SettingsRequest,
+)
 from app.security import RateLimiter, new_csrf, require_auth, require_csrf, verify_password
 from app.services.downloads import DownloadService
 from app.services.library import LibraryScanner
@@ -60,6 +67,10 @@ def create_app(config: Settings = settings) -> FastAPI:
         scheduler.processor = downloads.process
         app.state.scheduler = scheduler
         app.state.downloads = downloads
+        app.state.auto_download = {
+            "running": False, "searched": 0, "queued": 0,
+            "failed": 0, "message": "Ready",
+        }
         yield
         scheduler.shutdown()
 
@@ -329,10 +340,31 @@ def create_app(config: Settings = settings) -> FastAPI:
     def integration_status(request: Request):
         with request.app.state.database.connect() as db:
             rows = {row["provider"]: dict(row) for row in db.execute("SELECT * FROM integration_status")}
-        return {
-            "plex": {"enabled": config.plex_enabled, **rows.get("plex", {})},
-            "emby": {"enabled": config.emby_enabled, **rows.get("emby", {})},
-        }
+        result = {}
+        for provider in ("plex", "emby"):
+            saved = request.app.state.integrations.configuration(provider)
+            result[provider] = {
+                "enabled": saved["enabled"], "url": saved["url"],
+                "library_id": saved["library_id"],
+                "path_prefix": saved["path_prefix"],
+                "verify_ssl": saved["verify_ssl"],
+                "auto_refresh": saved["auto_refresh"],
+                "credential_configured": bool(saved["credential"]),
+                **rows.get(provider, {}),
+            }
+        return result
+
+    @application.post(
+        "/api/integrations/{provider}/settings",
+        dependencies=[Depends(require_csrf)],
+    )
+    def integration_save(
+        provider: str, payload: IntegrationSettingsRequest, request: Request
+    ):
+        if provider not in {"plex", "emby"}:
+            raise HTTPException(404, "Unknown integration")
+        request.app.state.integrations.save(provider, payload.model_dump())
+        return {"ok": True}
 
     @application.post("/api/integrations/{provider}/test", dependencies=[Depends(require_csrf)])
     def integration_test(provider: str, request: Request):
@@ -360,6 +392,92 @@ def create_app(config: Settings = settings) -> FastAPI:
         request.app.state.database.set_setting("daily_limit", str(payload.daily_limit))
         request.app.state.database.set_setting("retry_delay_seconds", str(payload.retry_delay_seconds))
         return {"ok": True}
+
+    def auto_download_worker(application_state, live: bool) -> None:
+        state = application_state.auto_download
+        try:
+            scheduler = application_state.scheduler
+            remaining = max(0, scheduler.daily_limit() - scheduler.downloads_today())
+            if not remaining:
+                state["message"] = "Daily download limit reached"
+                return
+            with application_state.database.connect() as db:
+                tracks = db.execute(
+                    """
+                    SELECT t.id,t.artist,t.title FROM tracks t
+                    WHERE t.artist!='' AND t.title!=''
+                      AND NOT EXISTS (
+                        SELECT 1 FROM download_ledger d WHERE d.track_id=t.id
+                      )
+                      AND NOT EXISTS (
+                        SELECT 1 FROM jobs j WHERE j.track_id=t.id
+                          AND j.state IN ('queued','searching','downloading','processing')
+                      )
+                    ORDER BY t.artist COLLATE NOCASE,t.title COLLATE NOCASE
+                    LIMIT ?
+                    """,
+                    (remaining,),
+                ).fetchall()
+            for track in tracks:
+                state["searched"] += 1
+                state["message"] = f"Finding {track['artist']} — {track['title']}"
+                try:
+                    options = {
+                        "quiet": True, "no_warnings": True, "skip_download": True,
+                        "extract_flat": True, "playlistend": 1,
+                        "socket_timeout": config.external_timeout,
+                    }
+                    query = f"{track['artist']} {track['title']} official music video"
+                    with yt_dlp.YoutubeDL(options) as downloader:
+                        info = downloader.extract_info(f"ytsearch1:{query}", download=False)
+                    match = next(
+                        (item for item in info.get("entries", []) if item and item.get("id")),
+                        None,
+                    )
+                    if not match:
+                        state["failed"] += 1
+                        continue
+                    application_state.downloads.enqueue(
+                        track["id"], match["id"], dry_run=not live
+                    )
+                    state["queued"] += 1
+                except Exception:
+                    state["failed"] += 1
+            if state["queued"]:
+                application_state.scheduler.start(dry_run=not live)
+                state["message"] = (
+                    f"Queued {state['queued']} videos; scheduler started"
+                )
+            else:
+                state["message"] = "No new video matches were found"
+        finally:
+            state["running"] = False
+
+    @application.post("/api/auto-download", dependencies=[Depends(require_csrf)])
+    def auto_download(payload: AutoDownloadRequest, request: Request):
+        if payload.live and (config.dry_run or not config.allow_downloads):
+            raise HTTPException(
+                409,
+                "Live downloads are locked. Set DRY_RUN=false and ALLOW_DOWNLOADS=true.",
+            )
+        state = request.app.state.auto_download
+        if state["running"]:
+            raise HTTPException(409, "Automatic discovery is already running")
+        state.update(
+            running=True, searched=0, queued=0, failed=0,
+            message="Starting automatic discovery",
+        )
+        threading.Thread(
+            target=auto_download_worker,
+            args=(request.app.state, payload.live),
+            name="auto-download",
+            daemon=False,
+        ).start()
+        return {"ok": True, "live": payload.live}
+
+    @application.get("/api/auto-download/status", dependencies=[Depends(require_auth)])
+    def auto_download_status(request: Request):
+        return request.app.state.auto_download
 
     @application.get("/api/settings", dependencies=[Depends(require_auth)])
     def get_settings(request: Request):
