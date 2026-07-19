@@ -10,8 +10,8 @@ services:
       MUSIC_LIBRARY: /music
       MUSIC_VIDEO_LIBRARY: /music-videos
       DATABASE_PATH: /data/music-video-sync.db
-      STAGING_PATH: /data/staging
-      PROCESSING_PATH: /data/processing
+      STAGING_PATH: /staging
+      PROCESSING_PATH: /processing
       APP_TIMEZONE: "${APP_TIMEZONE:-Australia/Sydney}"
       DAILY_DOWNLOAD_LIMIT: "${DAILY_DOWNLOAD_LIMIT:-250}"
       DRY_RUN: "${DRY_RUN:-true}"
@@ -21,6 +21,8 @@ services:
       - "D:/Music:/music:ro"
       - "D:/Music Videos:/music-videos"
       - "./data:/data"
+      - "mvs-staging:/staging"
+      - "mvs-processing:/processing"
     read_only: true
     tmpfs: ["/tmp:size=512m,noexec,nosuid"]
     user: "10001:10001"
@@ -39,3 +41,7 @@ services:
       timeout: 5s
       retries: 3
       start_period: 20s
+
+volumes:
+  mvs-staging:
+  mvs-processing:

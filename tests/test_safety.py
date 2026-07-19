@@ -35,8 +35,10 @@ def test_safe_component_blocks_traversal():
 def test_compose_keeps_music_read_only():
     compose = Path("compose.yaml").read_text(encoding="utf-8")
     assert 'D:/Music:/music:ro' in compose
-    assert "PROCESSING_PATH: /data/processing" in compose
-    assert "STAGING_PATH: /data/staging" in compose
+    assert "PROCESSING_PATH: /processing" in compose
+    assert "STAGING_PATH: /staging" in compose
+    assert '"mvs-processing:/processing"' in compose
+    assert '"mvs-staging:/staging"' in compose
 
 
 def test_live_auto_download_is_locked_in_dry_run(authenticated):
