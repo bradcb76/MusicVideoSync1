@@ -395,6 +395,7 @@ def create_app(config: Settings = settings) -> FastAPI:
 
     def auto_download_worker(application_state, live: bool) -> None:
         state = application_state.auto_download
+        scheduler_started = False
         try:
             scheduler = application_state.scheduler
             remaining = max(0, scheduler.daily_limit() - scheduler.downloads_today())
@@ -441,12 +442,20 @@ def create_app(config: Settings = settings) -> FastAPI:
                         track["id"], match["id"], dry_run=not live
                     )
                     state["queued"] += 1
+                    if not scheduler_started:
+                        if not application_state.scheduler.start(dry_run=not live):
+                            application_state.scheduler.resume()
+                        scheduler_started = True
+                    else:
+                        application_state.scheduler.resume()
+                    state["message"] = (
+                        f"Queued {state['queued']} video(s); downloading while discovery continues"
+                    )
                 except Exception:
                     state["failed"] += 1
             if state["queued"]:
-                application_state.scheduler.start(dry_run=not live)
                 state["message"] = (
-                    f"Queued {state['queued']} videos; scheduler started"
+                    f"Discovery finished; {state['queued']} videos queued"
                 )
             else:
                 state["message"] = "No new video matches were found"
