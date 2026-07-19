@@ -23,3 +23,17 @@ class SettingsRequest(BaseModel):
 class SearchRequest(BaseModel):
     artist: str = Field(min_length=1, max_length=200)
     title: str = Field(min_length=1, max_length=200)
+
+
+class IntegrationSettingsRequest(BaseModel):
+    enabled: bool = True
+    url: str = Field(min_length=1, max_length=500)
+    credential: str = Field(default="", max_length=2000)
+    library_id: str = Field(default="", max_length=200)
+    path_prefix: str = Field(default="", max_length=1000)
+    verify_ssl: bool = True
+    auto_refresh: bool = True
+
+
+class AutoDownloadRequest(BaseModel):
+    live: bool = False

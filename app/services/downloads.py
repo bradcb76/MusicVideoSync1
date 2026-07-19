@@ -70,10 +70,44 @@ class DownloadService:
                 (now, now, job_id),
             )
         work = ensure_within(self.settings.processing_path / f"job-{job_id}", self.settings.processing_path)
-        work.mkdir(parents=True, exist_ok=True)
         diagnostics = ""
         try:
+            work.mkdir(parents=True, exist_ok=True)
             template = str(work / "source.%(ext)s")
+            last_progress = -1
+
+            def progress_hook(update: dict) -> None:
+                nonlocal last_progress
+                status = update.get("status")
+                if status == "finished":
+                    progress = 68
+                elif status == "downloading":
+                    downloaded = int(update.get("downloaded_bytes") or 0)
+                    total = int(
+                        update.get("total_bytes")
+                        or update.get("total_bytes_estimate")
+                        or 0
+                    )
+                    if total:
+                        progress = max(1, min(67, int(downloaded / total * 67)))
+                    else:
+                        progress = 1
+                else:
+                    return
+                if progress == last_progress:
+                    return
+                last_progress = progress
+                with self.database.connect() as db:
+                    db.execute(
+                        "UPDATE jobs SET progress=?,message=?,updated_at=? WHERE id=?",
+                        (
+                            progress,
+                            "Downloading video",
+                            datetime.now(timezone.utc).isoformat(),
+                            job_id,
+                        ),
+                    )
+
             options = {
                 "format": (
                     f"bv*[height<={self.settings.video_quality}]+ba/"
@@ -87,6 +121,7 @@ class DownloadService:
                 "socket_timeout": self.settings.external_timeout,
                 "quiet": True,
                 "no_warnings": True,
+                "progress_hooks": [progress_hook],
             }
             with yt_dlp.YoutubeDL(options) as downloader:
                 downloader.download([f"https://www.youtube.com/watch?v={job['video_id']}"])

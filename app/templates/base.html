@@ -9,42 +9,45 @@
 </head>
 <body data-page="{{ active }}" data-dry-run="{{ 'true' if dry_run else 'false' }}">
   <a class="skip-link" href="#content">Skip to content</a>
-  <aside class="sidebar">
-    <a class="brand" href="/"><span class="brand-mark">M</span><span>MusicVideoSync</span></a>
+  <div class="mobile-shade" data-action="menu-close"></div>
+  <aside class="sidebar" aria-label="Application navigation">
+    <a class="brand" href="/"><span class="brand-mark">MV</span><span><b>MusicVideo</b><small>SYNC CONTROL</small></span></a>
     <nav aria-label="Primary">
-      {% set links = [
-        ('dashboard','/','Dashboard','grid'),
-        ('library','/library','Music Library','music'),
-        ('search','/search','Search','search'),
-        ('queue','/queue','Video Queue','queue'),
-        ('scheduler','/scheduler','Scheduler','clock'),
-        ('completed','/completed','Completed Videos','check'),
-        ('failed','/failed','Failed Items','alert'),
-        ('integrations','/integrations','Plex & Emby','link'),
-        ('settings','/settings','Settings','settings'),
-        ('system','/system','System Health','pulse'),
-        ('logs','/logs','Logs','list')
-      ] %}
-      {% for key, href, label, icon in links %}
-      <a href="{{ href }}" class="{{ 'active' if active == key else '' }}"><span aria-hidden="true" class="nav-icon">{{ icon[0]|upper }}</span>{{ label }}</a>
-      {% endfor %}
+      <p class="nav-heading">Overview</p>
+      <a href="/" class="{{ 'active' if active == 'dashboard' else '' }}"><span class="nav-icon">⌂</span>Control centre</a>
+      <p class="nav-heading">Library & discovery</p>
+      <a href="/library" class="{{ 'active' if active == 'library' else '' }}"><span class="nav-icon">♫</span>Music library</a>
+      <a href="/search" class="{{ 'active' if active == 'search' else '' }}"><span class="nav-icon">⌕</span>Video search</a>
+      <p class="nav-heading">Automation</p>
+      <a href="/queue" class="{{ 'active' if active == 'queue' else '' }}"><span class="nav-icon">≡</span>Video queue</a>
+      <a href="/scheduler" class="{{ 'active' if active == 'scheduler' else '' }}"><span class="nav-icon">◷</span>Scheduler</a>
+      <a href="/completed" class="{{ 'active' if active == 'completed' else '' }}"><span class="nav-icon">✓</span>Completed</a>
+      <a href="/failed" class="{{ 'active' if active == 'failed' else '' }}"><span class="nav-icon">!</span>Failed items</a>
+      <p class="nav-heading">Service</p>
+      <a href="/integrations" class="{{ 'active' if active == 'integrations' else '' }}"><span class="nav-icon">↔</span>Plex & Emby</a>
+      <a href="/settings" class="{{ 'active' if active == 'settings' else '' }}"><span class="nav-icon">⚙</span>Settings</a>
+      <a href="/system" class="{{ 'active' if active == 'system' else '' }}"><span class="nav-icon">♡</span>System health</a>
+      <a href="/logs" class="{{ 'active' if active == 'logs' else '' }}"><span class="nav-icon">☷</span>Activity log</a>
     </nav>
     <div class="sidebar-foot">
-      <span class="mode {{ 'dry' if dry_run else 'live' }}">{{ 'DRY RUN' if dry_run else 'LIVE MODE' }}</span>
-      <button class="button ghost small" data-action="logout">Sign out</button>
+      <div><span class="mode {{ 'dry' if dry_run else 'live' }}">{{ 'SAFE / DRY RUN' if dry_run else 'LIVE DOWNLOADS' }}</span><small>{{ 'No files will be written' if dry_run else 'Writes are enabled' }}</small></div>
+      <button class="icon-button" data-action="logout" title="Sign out" aria-label="Sign out">↪</button>
     </div>
   </aside>
   <main id="content">
     <header class="topbar">
-      <button class="menu" aria-label="Toggle navigation">☰</button>
-      <div><p class="eyebrow">MusicVideoSync</p><h1>{{ page_title }}</h1></div>
-      <div id="connection" class="connection"><span></span> Connected</div>
+      <button class="menu icon-button" data-action="menu-toggle" aria-label="Toggle navigation">☰</button>
+      <div class="page-title"><p class="eyebrow">MusicVideoSync</p><h1>{{ page_title }}</h1></div>
+      <div class="topbar-actions">
+        <span id="connection" class="connection"><i></i><span>Connected</span></span>
+        <span class="mode {{ 'dry' if dry_run else 'live' }}">{{ 'DRY RUN' if dry_run else 'LIVE' }}</span>
+      </div>
     </header>
     {% block content %}{% endblock %}
   </main>
   <div id="toast-region" role="status" aria-live="polite"></div>
   <dialog id="confirm-dialog">
-    <form method="dialog"><h2>Confirm action</h2><p id="confirm-message"></p>
+    <form method="dialog"><span class="dialog-icon">!</span><h2>Confirm action</h2><p id="confirm-message"></p>
       <div class="dialog-actions"><button value="cancel" class="button ghost">Cancel</button><button value="confirm" class="button primary">Confirm</button></div>
     </form>
   </dialog>

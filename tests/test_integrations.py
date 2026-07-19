@@ -30,3 +30,24 @@ def test_offline_errors_redact_credentials():
     result = PlexClient("http://127.0.0.1:1", "super-secret", timeout=0.01).test()
     assert not result.ok
     assert "super-secret" not in result.error
+
+
+def test_integration_settings_can_be_saved_without_returning_secret(authenticated):
+    client, csrf = authenticated
+    response = client.post(
+        "/api/integrations/plex/settings",
+        headers={"X-CSRF-Token": csrf},
+        json={
+            "enabled": True,
+            "url": "http://host.docker.internal:32400",
+            "credential": "private-token",
+            "library_id": "7",
+            "path_prefix": "/videos",
+            "verify_ssl": False,
+            "auto_refresh": True,
+        },
+    )
+    assert response.status_code == 200
+    status = client.get("/api/integrations/status").json()["plex"]
+    assert status["credential_configured"] is True
+    assert "private-token" not in str(status)
