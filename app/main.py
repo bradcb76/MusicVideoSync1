@@ -207,12 +207,21 @@ def create_app(config: Settings = settings) -> FastAPI:
                     "SELECT * FROM activity_log ORDER BY id DESC LIMIT 10"
                 )
             ]
+            current_job_row = connection.execute(
+                """
+                SELECT id,artist,state,progress,message FROM jobs
+                WHERE state IN ('downloading','processing')
+                ORDER BY updated_at DESC LIMIT 1
+                """
+            ).fetchone()
         scheduler: Scheduler = request.app.state.scheduler
         return {
             "tracks": tracks, "identified": identified, "unidentified": tracks - identified,
             "artists": artists, "jobs": jobs, "downloads_today": scheduler.downloads_today(),
             "daily_limit": scheduler.daily_limit(), "activity": activity,
             "disk": _disk(config.music_video_library), "dry_run": config.dry_run,
+            "current_job": dict(current_job_row) if current_job_row else None,
+            "auto_download": dict(request.app.state.auto_download),
         }
 
     @application.post("/api/library/scan", dependencies=[Depends(require_csrf)])

@@ -95,6 +95,36 @@ async function loadDashboard() {
       item.closest('.metric')?.classList.remove('skeleton');
     });
 
+    const eligible = Math.max(0, data.identified || 0);
+    const completedVideos = Math.max(0, data.jobs.completed || 0);
+    const libraryPercent = eligible
+      ? Math.min(100, completedVideos / eligible * 100)
+      : 0;
+    $('#library-progress-percent').textContent = `${Math.round(libraryPercent)}%`;
+    $('#library-progress-bar').style.width = `${libraryPercent}%`;
+    $('.download-progress-panel .progress').setAttribute(
+      'aria-valuenow', String(Math.round(libraryPercent))
+    );
+    $('#library-progress-count').textContent =
+      `${completedVideos.toLocaleString()} / ${eligible.toLocaleString()}`;
+    $('#library-queue-count').textContent =
+      Number(data.jobs.queued || 0).toLocaleString();
+    if (data.current_job) {
+      $('#library-current-job').textContent =
+        `${data.current_job.progress || 0}% · ${titleCase(data.current_job.state)}`;
+      $('#library-current-copy').textContent =
+        data.current_job.artist || `Job ${data.current_job.id}`;
+    } else {
+      $('#library-current-job').textContent =
+        data.jobs.queued ? 'Starting next' : 'Waiting';
+      $('#library-current-copy').textContent =
+        data.jobs.queued ? 'The next queued video will start shortly' : 'No video is currently processing';
+    }
+    const automatic = data.auto_download || {};
+    $('#auto-download-message').textContent = automatic.running
+      ? `${automatic.message} · ${automatic.queued || 0} queued · ${automatic.failed || 0} unmatched`
+      : (automatic.message || 'Automatic discovery is ready.');
+
     const percent = data.daily_limit ? Math.min(100, data.downloads_today / data.daily_limit * 100) : 0;
     $('#daily-progress').style.width = `${percent}%`;
     $('#daily-percent').textContent = `${Math.round(percent)}%`;

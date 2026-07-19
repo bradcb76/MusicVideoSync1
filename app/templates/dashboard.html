@@ -10,6 +10,22 @@
   {% endfor %}
 </section>
 
+<section class="panel download-progress-panel">
+  <div class="panel-head">
+    <div><p class="eyebrow">Automatic downloads</p><h2>Library video progress</h2></div>
+    <strong id="library-progress-percent" class="progress-percent">0%</strong>
+  </div>
+  <div class="progress jumbo" role="progressbar" aria-label="Music video library completion" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+    <span id="library-progress-bar"></span>
+  </div>
+  <div class="progress-summary">
+    <div><strong id="library-progress-count">0 / 0</strong><small>completed videos</small></div>
+    <div><strong id="library-current-job">Waiting</strong><small id="library-current-copy">No video is currently processing</small></div>
+    <div><strong id="library-queue-count">0</strong><small>waiting in queue</small></div>
+  </div>
+  <p id="auto-download-message" class="progress-message muted">Automatic discovery is ready.</p>
+</section>
+
 <section class="dashboard-grid">
   <article class="panel pipeline-panel">
     <div class="panel-head"><div><p class="eyebrow">Pipeline</p><h2>Automation status</h2></div><a class="text-link" href="/scheduler">Open scheduler →</a></div>
