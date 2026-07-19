@@ -101,7 +101,20 @@ class Scheduler:
                         ).fetchone()[0]
                     )
                 if self.processor:
-                    self.processor(job["id"], dry_run)
+                    try:
+                        self.processor(job["id"], dry_run)
+                    except Exception as error:
+                        now = datetime.now(timezone.utc).isoformat()
+                        with self.database.connect() as db:
+                            db.execute(
+                                "UPDATE jobs SET state='failed',message=?,updated_at=? "
+                                "WHERE id=?",
+                                (
+                                    f"Unexpected processor error: {type(error).__name__}",
+                                    now,
+                                    job["id"],
+                                ),
+                            )
                 else:
                     with self.database.connect() as db:
                         db.execute(

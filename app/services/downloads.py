@@ -70,9 +70,9 @@ class DownloadService:
                 (now, now, job_id),
             )
         work = ensure_within(self.settings.processing_path / f"job-{job_id}", self.settings.processing_path)
-        work.mkdir(parents=True, exist_ok=True)
         diagnostics = ""
         try:
+            work.mkdir(parents=True, exist_ok=True)
             template = str(work / "source.%(ext)s")
             options = {
                 "format": (
