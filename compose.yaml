@@ -12,11 +12,11 @@ services:
       DATABASE_PATH: /data/music-video-sync.db
       STAGING_PATH: /staging
       PROCESSING_PATH: /processing
-      APP_TIMEZONE: Australia/Sydney
-      DAILY_DOWNLOAD_LIMIT: "250"
-      DRY_RUN: "true"
-      ALLOW_DOWNLOADS: "false"
-      DOCS_ENABLED: "false"
+      APP_TIMEZONE: "${APP_TIMEZONE:-Australia/Sydney}"
+      DAILY_DOWNLOAD_LIMIT: "${DAILY_DOWNLOAD_LIMIT:-250}"
+      DRY_RUN: "${DRY_RUN:-true}"
+      ALLOW_DOWNLOADS: "${ALLOW_DOWNLOADS:-false}"
+      DOCS_ENABLED: "${DOCS_ENABLED:-false}"
     volumes:
       - "D:/Music:/music:ro"
       - "D:/Music Videos:/music-videos"
